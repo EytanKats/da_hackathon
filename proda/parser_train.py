@@ -5,7 +5,7 @@ import os
 import json
 
 def parser_(parser):
-    parser.add_argument('--root', type=str, default='/mnt/blob', help='root path')
+    parser.add_argument('--root', type=str, default='/data_supergrover3/kats/experiments/da_hackathon/mmwhs/proda/first_try', help='root path')
     parser.add_argument('--model_name', type=str, default='deeplabv2', help='deeplabv2')
     parser.add_argument('--name', type=str, default='gta2city', help='pretrain source model')
     parser.add_argument('--lr', type=float, default=0.0001)
@@ -18,7 +18,7 @@ def parser_(parser):
     #training
     parser.add_argument('--no_resume', action='store_true')
     parser.add_argument('--seed', type=int, default=1337, help='random seed')
-    parser.add_argument('--stage', type=str, default='stage1', help='warm_up|stage1|stage2|stage3')
+    parser.add_argument('--stage', type=str, default='warm_up', help='warm_up|stage1|stage2|stage3')
     parser.add_argument('--finetune', action='store_true')
     #model
     parser.add_argument('--resume_path', type=str, default='pretrained/warmup/from_gta5_to_cityscapes_on_deeplab101_best_model_warmup.pkl', help='resume model path')
@@ -42,7 +42,7 @@ def parser_(parser):
     parser.add_argument('--rcrop', type=str, default='896,512', help='rondom crop size')
     parser.add_argument('--hflip', type=float, default=0.5, help='random flip probility')
 
-    parser.add_argument('--n_class', type=int, default=19, help='19|16|13')
+    parser.add_argument('--n_class', type=int, default=5, help='19|16|13')
     parser.add_argument('--num_workers', type=int, default=6)
     #loss
     parser.add_argument('--gan', type=str, default='LS', help='Vanilla|LS')
@@ -59,8 +59,8 @@ def parser_(parser):
     parser.add_argument('--S_pseudo', type=float, default=0.0, help='loss weight of pseudo label for strong augmentation')
 
     #print
-    parser.add_argument('--print_interval', type=int, default=20, help='print loss')
-    parser.add_argument('--val_interval', type=int, default=1000, help='validate model iter')
+    parser.add_argument('--print_interval', type=int, default=50, help='print loss')
+    parser.add_argument('--val_interval', type=int, default=500, help='validate model iter')
 
     parser.add_argument('--noshuffle', action='store_true', help='do not use shuffle')
     parser.add_argument('--noaug', action='store_true', help='do not use data augmentation')
@@ -73,10 +73,10 @@ def parser_(parser):
 
 def relative_path_to_absolute_path(opt):
     opt.rcrop = [int(opt.rcrop.split(',')[0]), int(opt.rcrop.split(',')[1])]
-    opt.resume_path = os.path.join(opt.root, 'Code/ProDA', opt.resume_path)
+    opt.resume_path = os.path.join(opt.root, opt.resume_path)
     opt.src_rootpath = os.path.join(opt.root, opt.src_rootpath)
     opt.tgt_rootpath = os.path.join(opt.root, opt.tgt_rootpath)
-    opt.path_LP = os.path.join(opt.root, 'Code/ProDA', opt.path_LP)
-    opt.path_soft = os.path.join(opt.root, 'Code/ProDA', opt.path_soft)
-    opt.logdir = os.path.join(opt.root, 'Code/ProDA', 'logs', opt.name)
+    opt.path_LP = os.path.join(opt.root, opt.path_LP)
+    opt.path_soft = os.path.join(opt.root, opt.path_soft)
+    opt.logdir = os.path.join(opt.root, 'logs')
     return opt

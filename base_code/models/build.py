@@ -1,7 +1,7 @@
 import torch.nn as nn
 import torchvision
-from models.unet import UNet2d
-from models.efficient_unet import EfficientUNet2d
+from base_code.models.unet import UNet2d
+from base_code.models.efficient_unet import EfficientUNet2d
 
 
 def build_model(cfg):

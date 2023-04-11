@@ -7,11 +7,13 @@ import os
 import time
 from tqdm import tqdm
 import numpy as np
+import torch
 from base_code.defaults import get_cfg_defaults
 from base_code.dataset import build_dataloader
 from base_code.models.build import build_model
 from base_code.optimizer import build_optimizer
 from base_code.validate import validate
+
 
 def train(cfg, output_directory):
     # parameters
@@ -90,7 +92,13 @@ def train(cfg, output_directory):
             torch.save(model.state_dict(), os.path.join(output_directory, 'model_ep{:03d}.pth'.format(epoch + 1)))
 
 
-if __name__ == "__main__":
+def get_datasets():
+    cfg = get_configuration()
+    train_loader_src, train_loader_tgt, val_loader = build_dataloader(cfg)
+    return train_loader_src, train_loader_tgt, val_loader
+
+def get_configuration():
+
     parser = argparse.ArgumentParser(description="PyTorch Object Detection Training")
     parser.add_argument(
         "--config-file",
@@ -110,11 +118,16 @@ if __name__ == "__main__":
     os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
     os.environ["CUDA_VISIBLE_DEVICES"] = args.gpu
 
-    import torch
-
     cfg = get_cfg_defaults()
     cfg.merge_from_file(args.config_file)
     cfg.freeze()
+
+    return cfg
+
+
+if __name__ == "__main__":
+
+    cfg = get_configuration()
 
     output_directory = os.path.join(cfg.BASE_DIRECTORY, cfg.EXPERIMENT_NAME)
     if not os.path.exists(output_directory):

@@ -2,7 +2,7 @@ from yacs.config import CfgNode as CN
 
 _C = CN()
 
-_C.BASE_DIRECTORY = "/data_supergrover3/kats/experiments/da_hackathon/mmwhs/"
+_C.BASE_DIRECTORY = "/data_supergrover3/kats/experiments/da_hackathon/mmwhs/base_code"
 _C.EXPERIMENT_NAME = ""
 
 _C.ORACLE = False

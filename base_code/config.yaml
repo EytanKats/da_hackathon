@@ -1,6 +1,6 @@
-EXPERIMENT_NAME: 'efficientUnet2d/baseline/base'
+EXPERIMENT_NAME: 'efficientUnet2d'
 DATA:
-  NUM_WORKERS: 8
+  NUM_WORKERS: 6
   IN_CHANNELS: 3
   OUT_CHANNELS: 5
   MEAN_CENTER: True
