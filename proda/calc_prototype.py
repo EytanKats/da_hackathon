@@ -13,8 +13,12 @@ from PIL import Image
 from parser_train import parser_, relative_path_to_absolute_path
 from tqdm import tqdm
 
+from base_code.train import get_datasets
+
 from data import create_dataset
 from models import adaptation_modelv2
+
+from proda.data import get_composed_augmentations
 
 def calc_prototype(opt, logger):
     torch.manual_seed(opt.seed)
@@ -23,7 +27,11 @@ def calc_prototype(opt, logger):
     random.seed(opt.seed)
     ## create dataset
     device = torch.device("cuda:0" if torch.cuda.is_available() else 'cpu')
-    datasets = create_dataset(opt, logger) 
+    # datasets = create_dataset(opt, logger)
+
+    train_loader_src, train_loader_tgt, val_loader = get_datasets()
+    train_loader_src.dataset.augmentations = get_composed_augmentations(opt)
+    train_loader_tgt.dataset.augmentations = get_composed_augmentations(opt)
 
     if opt.model_name == 'deeplabv2':
         model = adaptation_modelv2.CustomModel(opt, logger)
@@ -32,16 +40,20 @@ def calc_prototype(opt, logger):
 
     # begin training
     model.iter = 0
-    for epoch in range(opt.epochs):
-        for data_i in tqdm(datasets.target_train_loader):  
-            model.iter += 1
-            i = model.iter
-            source_data = datasets.source_train_loader.next()
-            images = source_data['img'].to(device)
-            labels = source_data['label'].to(device)
+    for epoch in range(1):
 
-            target_image = data_i['img'].to(device)
-            target_label = data_i['label'].to(device)
+        train_loader_tgt_iter = iter(train_loader_tgt)
+        for source_data in tqdm(train_loader_src):
+            images = source_data[0].to(device)
+            labels = source_data[1].to(device)
+
+            try:
+                data_tgt = next(train_loader_tgt_iter)
+            except StopIteration:
+                train_loader_tgt_iter = iter(train_loader_tgt)
+                data_tgt = next(train_loader_tgt_iter)
+
+            target_image = data_tgt[0].to(device)
 
             model.eval()
             if opt.source: #source
