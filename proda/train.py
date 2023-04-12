@@ -1,6 +1,9 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+import sys
+sys.path.append('../')
+
 import os
 import sys
 import time
@@ -148,7 +151,7 @@ def validation(model, logger, datasets, device, running_metrics_val_mr, running_
 
     for k, v in class_iou.items():
         logger.info('MR {}: {}'.format(k, v))
-        
+
     print('Target CT validation')
     with torch.no_grad():
         validate(datasets[1], device, model, running_metrics_val_ct)
@@ -213,6 +216,7 @@ def validate(valid_loader, device, model, running_metrics_val):
         #val_loss = loss_fn(input=outputs, target=labels_val)
 
         pred = outputs.data.max(1)[1].cpu().numpy()
+        # pred = out.data.max(1)[1].cpu().numpy()
         gt = labels_val.data.cpu().numpy()
         running_metrics_val.update(gt, pred)
 
@@ -222,8 +226,6 @@ if __name__ == "__main__":
     opt = parser.parse_args()
 
     opt = relative_path_to_absolute_path(opt)
-
-    opt.no_resume = True
 
     print('RUNDIR: {}'.format(opt.logdir))
     if not os.path.exists(opt.logdir):

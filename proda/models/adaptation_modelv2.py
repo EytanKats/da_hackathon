@@ -13,6 +13,8 @@ from proda.models.discriminator import FCDiscriminator
 from .utils import freeze_bn, get_scheduler, cross_entropy2d
 from proda.data.randaugment import affine_sample
 
+from base_code.train import get_model
+
 class feat_prototype_distance_module(nn.Module):
     def __init__(self):
         super(feat_prototype_distance_module, self).__init__()
@@ -56,6 +58,7 @@ class CustomModel():
                 initialization=os.path.join(opt.root, 'Code/ProDA', 'pretrained/simclr/r101_1x_sk0.pth'), bn_clr=opt.bn_clr)
         else:
             self.BaseNet = Deeplab(BatchNorm, num_classes=self.class_numbers, freeze_bn=False, restore_from=restore_from)
+            # self.BaseNet = get_model()
             
         logger.info('the backbone is {}'.format(opt.model_name))
 
@@ -64,7 +67,7 @@ class CustomModel():
         self.optimizers = []
         self.schedulers = []        
         optimizer_cls = torch.optim.SGD
-        optimizer_params = {'lr':opt.lr, 'weight_decay':2e-4, 'momentum':0.9}
+        optimizer_params = {'lr':opt.lr, 'weight_decay': 2e-4, 'momentum': 0.9}
 
         if self.opt.stage == 'warm_up':
             self.net_D = FCDiscriminator(inplanes=self.class_numbers)
@@ -82,6 +85,7 @@ class CustomModel():
                                            {'params':self.BaseNet.get_10x_lr_params(), 'lr':optimizer_params['lr']*10}], **optimizer_params)
         else:
             self.BaseOpti = optimizer_cls(self.BaseNet.parameters(), **optimizer_params)
+        # self.BaseOpti = optimizer_cls(self.BaseNet.parameters(), **optimizer_params)
         self.optimizers.extend([self.BaseOpti])
 
         self.BaseSchedule = get_scheduler(self.BaseOpti, opt)
@@ -154,13 +158,17 @@ class CustomModel():
             source_outputUp = F.interpolate(source_output['out'], size=source_x.size()[2:], mode='bilinear', align_corners=True)
         else:
             source_output = self.BaseNet_DP(source_x, ssl=True)
+            # source_output = self.BaseNet_DP(source_x)
             source_outputUp = F.interpolate(source_output['out'], size=source_x.size()[2:], mode='bilinear', align_corners=True)
 
             loss_GTA = cross_entropy2d(input=source_outputUp, target=source_label, size_average=True, reduction='mean')
+            # loss_GTA = cross_entropy2d(input=source_output, target=source_label, size_average=True, reduction='mean')
 
         target_output = self.BaseNet_DP(target_x, ssl=True)
+        # target_output = self.BaseNet_DP(target_x)
         target_outputUp = F.interpolate(target_output['out'], size=target_x.size()[2:], mode='bilinear', align_corners=True)
         target_D_out = self.net_D_DP(F.softmax(target_outputUp, dim=1))
+        # target_D_out = self.net_D_DP(F.softmax(target_output, dim=1))
         loss_adv_G = self.bceloss(target_D_out, torch.FloatTensor(target_D_out.data.size()).fill_(self.adv_source_label).to(target_D_out.device)) * self.opt.adv
         loss_G = loss_adv_G + loss_GTA
         loss_G.backward()
@@ -171,6 +179,8 @@ class CustomModel():
         self.optimizer_D.zero_grad()
         source_D_out = self.net_D_DP(F.softmax(source_outputUp.detach(), dim=1))
         target_D_out = self.net_D_DP(F.softmax(target_outputUp.detach(), dim=1))
+        # source_D_out = self.net_D_DP(F.softmax(source_output.detach(), dim=1))
+        # target_D_out = self.net_D_DP(F.softmax(target_output.detach(), dim=1))
         loss_D = self.bceloss(source_D_out, torch.FloatTensor(source_D_out.data.size()).fill_(self.adv_source_label).to(source_D_out.device)) + \
                     self.bceloss(target_D_out, torch.FloatTensor(target_D_out.data.size()).fill_(self.adv_target_label).to(target_D_out.device))
         loss_D.backward()
@@ -214,7 +224,7 @@ class CustomModel():
             threshold_arg[argmax < self.opt.train_thred] = 250
         if self.opt.S_pseudo > 0:
             threshold_argS = self.label_strong_T(threshold_arg.clone().float(), target_params, padding=250, scale=4).to(torch.int64)
-            cluster_argS = self.label_strong_T(cluster_arg.clone().float(), target_params, padding=250, scale=4).to(torch.int64)
+            # cluster_argS = self.label_strong_T(cluster_arg.clone().float(), target_params, padding=250, scale=4).to(torch.int64)
             threshold_arg = threshold_argS
 
         loss_CTS = cross_entropy2d(input=target_out['out'], target=threshold_arg.reshape([batch, w, h]))

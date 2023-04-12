@@ -92,6 +92,11 @@ def train(cfg, output_directory):
             torch.save(model.state_dict(), os.path.join(output_directory, 'model_ep{:03d}.pth'.format(epoch + 1)))
 
 
+def get_model():
+    cfg = get_configuration()
+    model = build_model(cfg)
+    return model
+
 def get_datasets():
     cfg = get_configuration()
     train_loader_src, train_loader_tgt, val_loader = build_dataloader(cfg)

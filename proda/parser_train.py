@@ -5,7 +5,7 @@ import os
 import json
 
 def parser_(parser):
-    parser.add_argument('--root', type=str, default='/data_supergrover3/kats/experiments/da_hackathon/mmwhs/proda/first_try', help='root path')
+    parser.add_argument('--root', type=str, default='/data_supergrover3/kats/experiments/da_hackathon/mmwhs/proda/deep_try', help='root path')
     parser.add_argument('--model_name', type=str, default='deeplabv2', help='deeplabv2')
     parser.add_argument('--name', type=str, default='gta2city', help='pretrain source model')
     parser.add_argument('--lr', type=float, default=0.0001)
@@ -16,7 +16,7 @@ def parser_(parser):
     parser.add_argument('--moving_prototype', action='store_true')
     parser.add_argument('--bn', type=str, default='sync_bn', help='sync_bn|bn|gn|adabn')
     #training
-    parser.add_argument('--no_resume', action='store_true')
+    parser.add_argument('--no_resume', action='store_false')
     parser.add_argument('--seed', type=int, default=1337, help='random seed')
     parser.add_argument('--stage', type=str, default='warm_up', help='warm_up|stage1|stage2|stage3')
     parser.add_argument('--finetune', action='store_true')
