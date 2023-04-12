@@ -49,7 +49,8 @@ class CustomModel():
         if self.opt.no_resume:
             restore_from = None
         else:
-            restore_from= opt.resume_path
+            # restore_from= opt.resume_path
+            restore_from = '/data_supergrover3/kats/experiments/da_hackathon/mmwhs/proda/deep_try/logs/from_mmhws_to_cityscapes_on_deeplabv2_best_model.pkl'
             self.best_iou = 0
         if self.opt.student_init == 'imagenet':
             self.BaseNet = Deeplab(BatchNorm, num_classes=self.class_numbers, freeze_bn=False, restore_from=restore_from)

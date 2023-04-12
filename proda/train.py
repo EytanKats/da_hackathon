@@ -21,6 +21,8 @@ from utils import get_logger
 from models import adaptation_modelv2
 from metrics import runningScore, averageMeter
 
+from proda.data import get_composed_augmentations
+
 from base_code.train import get_datasets
 
 def train(opt, logger):
@@ -33,6 +35,9 @@ def train(opt, logger):
     # datasets = create_dataset(opt, logger)
     train_loader_src, train_loader_tgt, val_loader = get_datasets()
 
+    train_loader_src.dataset.augmentations = get_composed_augmentations(opt)
+    train_loader_tgt.dataset.augmentations = get_composed_augmentations(opt)
+
     if opt.model_name == 'deeplabv2':
         model = adaptation_modelv2.CustomModel(opt, logger)
 
@@ -43,7 +48,8 @@ def train(opt, logger):
 
     # load category anchors
     if opt.stage == 'stage1':
-        objective_vectors = torch.load(os.path.join(os.path.dirname(opt.resume_path), 'prototypes_on_{}_from_{}'.format(opt.tgt_dataset, opt.model_name)))
+        # objective_vectors = torch.load(os.path.join(os.path.dirname(opt.resume_path), 'prototypes_on_{}_from_{}'.format(opt.tgt_dataset, opt.model_name)))
+        objective_vectors = torch.load('/data_supergrover3/kats/experiments/da_hackathon/mmwhs/proda/deep_stage1/logs/prototypes_on_cityscapes_from_deeplabv2')
         model.objective_vectors = torch.Tensor(objective_vectors).to(0)
 
     # begin training
@@ -73,6 +79,8 @@ def train(opt, logger):
         for source_data in train_loader_src:
             images = source_data[0].to(device)
             labels = source_data[1].to(device)
+            source_imageS = source_data[6].to(device)
+            source_params = source_data[7]
 
             try:
                 data_tgt = next(train_loader_tgt_iter)
@@ -81,6 +89,12 @@ def train(opt, logger):
                 data_tgt = next(train_loader_tgt_iter)
 
             target_image = data_tgt[0].to(device)
+            target_imageS = data_tgt[6].to(device)
+            target_params = data_tgt[7]
+            target_image_full = data_tgt[8].to(device)
+            target_weak_params = data_tgt[5]
+            target_lpsoft = data_tgt[9].to(device)
+            target_lp = None
 
             model.iter += 1
             i = model.iter
@@ -93,11 +107,11 @@ def train(opt, logger):
             model.optimizer_zerograd()
 
             if opt.stage == 'warm_up':
-                # loss_GTA, loss_G, loss_D = model.step_adv(images, labels, target_image, source_imageS, source_params)
-                loss_GTA, loss_G, loss_D = model.step_adv(images, labels, target_image, None, None)
-            # elif opt.stage == 'stage1':
-            #     loss, loss_CTS, loss_consist = model.step(images, labels, target_image, target_imageS, target_params, target_lp,
-            #                             target_lpsoft, target_image_full, target_weak_params)
+                loss_GTA, loss_G, loss_D = model.step_adv(images, labels, target_image, source_imageS, source_params)
+                # loss_GTA, loss_G, loss_D = model.step_adv(images, labels, target_image, None, None)
+            elif opt.stage == 'stage1':
+                loss, loss_CTS, loss_consist = model.step(images, labels, target_image, target_imageS, target_params, target_lp,
+                                        target_lpsoft, target_image_full, target_weak_params)
             # else:
             #     loss_GTA, loss = model.step_distillation(images, labels, target_image, target_imageS, target_params, target_lp)
 
@@ -108,9 +122,9 @@ def train(opt, logger):
                 if opt.stage == 'warm_up':
                     fmt_str = "Epochs [{:d}/{:d}] Iter [{:d}/{:d}]  loss_GTA: {:.4f}  loss_G: {:.4f}  loss_D: {:.4f} Time/Image: {:.4f}"
                     print_str = fmt_str.format(epoch+1, opt.epochs, i + 1, opt.train_iters, loss_GTA, loss_G, loss_D, time_meter.avg / opt.bs)
-                # elif opt.stage == 'stage1':
-                #     fmt_str = "Epochs [{:d}/{:d}] Iter [{:d}/{:d}]  loss: {:.4f}  loss_CTS: {:.4f}  loss_consist: {:.4f} Time/Image: {:.4f}"
-                #     print_str = fmt_str.format(epoch+1, opt.epochs, i + 1, opt.train_iters, loss, loss_CTS, loss_consist, time_meter.avg / opt.bs)
+                elif opt.stage == 'stage1':
+                    fmt_str = "Epochs [{:d}/{:d}] Iter [{:d}/{:d}]  loss: {:.4f}  loss_CTS: {:.4f}  loss_consist: {:.4f} Time/Image: {:.4f}"
+                    print_str = fmt_str.format(epoch+1, opt.epochs, i + 1, opt.train_iters, loss, loss_CTS, loss_consist, time_meter.avg / opt.bs)
                 # else:
                 #     fmt_str = "Epochs [{:d}/{:d}] Iter [{:d}/{:d}]  loss_GTA: {:.4f}  loss: {:.4f} Time/Image: {:.4f}"
                 #     print_str = fmt_str.format(epoch+1, opt.epochs, i + 1, opt.train_iters, loss_GTA, loss, time_meter.avg / opt.bs)

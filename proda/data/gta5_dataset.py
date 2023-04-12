@@ -16,8 +16,8 @@ from scipy import stats
 
 from torch.utils import data
 
-from data import BaseDataset
-from data.randaugment import RandAugmentMC
+from proda.data import BaseDataset
+from proda.data.randaugment import RandAugmentMC
 
 class GTA5_loader(BaseDataset):
     """

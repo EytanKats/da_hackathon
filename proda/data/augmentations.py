@@ -430,7 +430,7 @@ class RandomSized(object):
             assert (img.size == mask1.size)
 
         prop = 1.0 * img.size[0] / img.size[1]
-        w = int(random.uniform(0.5, 1.5) * self.size)
+        w = int(random.uniform(1.1, 1.5) * self.size)
         #w = self.size
         h = int(w/prop)
         params['RandomSized'] = (h, w)

@@ -5,7 +5,7 @@ import os
 import json
 
 def parser_(parser):
-    parser.add_argument('--root', type=str, default='/data_supergrover3/kats/experiments/da_hackathon/mmwhs/proda/deep_try', help='root path')
+    parser.add_argument('--root', type=str, default='/data_supergrover3/kats/experiments/da_hackathon/mmwhs/proda/deep_stage1', help='root path')
     parser.add_argument('--model_name', type=str, default='deeplabv2', help='deeplabv2')
     parser.add_argument('--name', type=str, default='gta2city', help='pretrain source model')
     parser.add_argument('--lr', type=float, default=0.0001)
@@ -16,13 +16,13 @@ def parser_(parser):
     parser.add_argument('--moving_prototype', action='store_true')
     parser.add_argument('--bn', type=str, default='sync_bn', help='sync_bn|bn|gn|adabn')
     #training
-    parser.add_argument('--no_resume', action='store_false')
+    parser.add_argument('--no_resume', action='store_true')
     parser.add_argument('--seed', type=int, default=1337, help='random seed')
-    parser.add_argument('--stage', type=str, default='warm_up', help='warm_up|stage1|stage2|stage3')
+    parser.add_argument('--stage', type=str, default='stage1', help='warm_up|stage1|stage2|stage3')
     parser.add_argument('--finetune', action='store_true')
     #model
-    parser.add_argument('--resume_path', type=str, default='pretrained/warmup/from_gta5_to_cityscapes_on_deeplab101_best_model_warmup.pkl', help='resume model path')
-    parser.add_argument('--ema', action='store_true', help='use ema model')
+    parser.add_argument('--resume_path', type=str, default='logs/from_mmhws_to_cityscapes_on_deeplabv2_best_model.pkl', help='resume model path')
+    parser.add_argument('--ema', action='store_false', help='use ema model')
     parser.add_argument('--ema_bn', action='store_true', help='add extra bn for ema model')
     parser.add_argument("--student_init", default='stage1', type=str, help="stage1|imagenet|simclr")
     parser.add_argument("--proto_momentum", default=0.0001, type=float)
@@ -38,8 +38,8 @@ def parser_(parser):
     parser.add_argument('--used_save_pseudo', action='store_true', help='if True used saved pseudo label')
     parser.add_argument('--no_droplast', action='store_true')
 
-    parser.add_argument('--resize', type=int, default=2200, help='resize long size')
-    parser.add_argument('--rcrop', type=str, default='896,512', help='rondom crop size')
+    parser.add_argument('--resize', type=int, default=256, help='resize long size')
+    parser.add_argument('--rcrop', type=str, default='256,256', help='rondom crop size')
     parser.add_argument('--hflip', type=float, default=0.5, help='random flip probility')
 
     parser.add_argument('--n_class', type=int, default=5, help='19|16|13')
@@ -65,7 +65,7 @@ def parser_(parser):
     parser.add_argument('--noshuffle', action='store_true', help='do not use shuffle')
     parser.add_argument('--noaug', action='store_true', help='do not use data augmentation')
 
-    parser.add_argument('--proto_rectify', action='store_true')
+    parser.add_argument('--proto_rectify', action='store_false')
     parser.add_argument('--proto_temperature', type=float, default=1.0)
     #stage2
     parser.add_argument("--threshold", default=-1, type=float)
